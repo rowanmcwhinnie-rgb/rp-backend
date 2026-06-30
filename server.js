@@ -2,16 +2,22 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
 app.use(express.json({ limit: "10mb" }));
 
 const API_KEY = process.env.ANTHROPIC_API_KEY;
 const PORT = process.env.PORT || 3000;
 
-// Proxy route — the app sends requests here instead of directly to Anthropic
 app.post("/api/ai", async (req, res) => {
   if (!API_KEY) {
-    return res.status(500).json({ error: "API key not configured" });
+    return res.status(500).json({ error: "API key not configured on server" });
   }
 
   try {
@@ -28,6 +34,7 @@ app.post("/api/ai", async (req, res) => {
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (err) {
+    console.error("Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
