@@ -1,0 +1,37 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+
+const API_KEY = process.env.ANTHROPIC_API_KEY;
+const PORT = process.env.PORT || 3000;
+
+// Proxy route — the app sends requests here instead of directly to Anthropic
+app.post("/api/ai", async (req, res) => {
+  if (!API_KEY) {
+    return res.status(500).json({ error: "API key not configured" });
+  }
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "x-api-key": API_KEY,
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/", (req, res) => res.send("R·Packer API is running ✓"));
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
