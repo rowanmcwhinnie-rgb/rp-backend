@@ -1,3 +1,13 @@
+app.use((req, res, next) => {
+  const allowedOrigin = req.headers.origin;
+  if (allowedOrigin && (allowedOrigin.endsWith('.github.io') || allowedOrigin.startsWith('http://localhost'))) {
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 const express = require("express");
 const cors = require("cors");
 
